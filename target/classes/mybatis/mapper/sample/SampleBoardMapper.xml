@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.microservices.mvp.dao.SampleBoardDao">
+	<select id="selectBoards" resultType="com.springboot.microservices.mvp.model.SampleBoard">
+	    select 
+			board_id,
+			amnd_yms,
+			reg_yms,
+			reg_user_nm,
+			board_contents,
+			board_subject 
+	    from tb_BoardList_wh;	    
+	</select>
+	<insert id="insertBoards" parameterType="sampleBoard">
+	    insert into tb_BoardList_wh values (#{boardId},	
+			#{boardSubject}, 
+			#{boardContents},
+			#{regUserNm},
+			#{regYms},
+			#{amndYms}
+			)
+	    
+	</insert>
+	<update id="updateBoards" parameterType="sampleBoard">
+	    update tb_BoardList_wh 
+	    set board_contents = #{boardContents}
+	    ,board_subject = #{boardSubject}
+	    ,reg_user_nm = #{regUserNm}
+	    where board_id = #{boardId}
+	    
+	</update>
+	<delete id="deleteBoards" parameterType="sampleBoard">
+	    delete from tb_BoardList_wh
+	    where board_id = #{boardId}
+	</delete>	
+	<select id="selectBoardById" parameterType="String" resultType="sampleBoard">
+	    select 
+	    	board_id,
+			amnd_yms,
+			reg_yms,
+			reg_user_nm,
+			board_contents,
+			board_subject 
+	    from tb_BoardList_wh
+	    where user_id = #{boardId}
+	</select>
+</mapper>
+
+

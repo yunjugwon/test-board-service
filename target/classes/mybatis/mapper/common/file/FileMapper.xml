@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.springboot.microservices.mvp.common.file.dao.FileDao">
+	
+	<insert id="insertFileInfo" parameterType="FileInfoVO">
+	/*insertFileInfo*/
+		INSERT INTO TB_FILE_ATTACH
+		(
+			 ATTACH_SEQ
+			,FILE_SEQ
+			,FILE_TYPE_CD
+			,FILE_PATH
+			,FILE_PHYSICAL_NM
+			,FILE_LOGICAL_NM
+			,FILE_EXT
+			,FILE_SIZE
+			,USE_YN
+			,DEL_YN
+			,INS_USER_ID
+			,INS_DT
+			,UPD_USER_ID
+			,UPD_DT
+		)
+		VALUES
+		(
+			 #{attachSeq}
+			,#{fileSeq}
+			,#{fileTypeCd}
+			,#{filePath}
+			,#{filePhysicalNm}
+			,#{fileLogicalNm}
+			,#{fileExt}
+			,#{fileSize}
+			,'Y'
+			,'N'
+			,#{insUserId}
+			,now()
+			,#{updUserId}
+			,now()
+		)
+	</insert>
+	
+	<update id="deleteFileInfoByAttachSeqAndFileSeq" parameterType="FileInfoVO">
+		/*deleteFileInfoByAttachSeqAndFileSeq*/
+		UPDATE TB_FILE_ATTACH
+		SET
+			 USE_YN = 'N'
+			,DEL_YN = 'Y'
+			,UPD_USER_ID = #{updUserId}
+			,UPD_DT = now()
+		WHERE 1=1
+			AND ATTACH_SEQ = #{attachSeq}
+			AND FILE_SEQ = #{fileSeq}
+	</update>
+	
+	<update id="deleteFileInfoByAttachSeq" parameterType="long">
+		/*deleteFileInfoByAttachSeq*/
+		UPDATE TB_FILE_ATTACH
+		SET
+			 USE_YN = 'N'
+			,DEL_YN = 'Y'
+			,UPD_USER_ID = #{updUserId}
+			,UPD_DT = now()
+		WHERE 1=1
+			AND ATTACH_SEQ = #{attachSeq}
+	</update>
+	
+	<sql id="tbFileAttach">
+		SELECT 
+			 ATTACH_SEQ
+			,FILE_SEQ
+			,FILE_TYPE_CD
+			,FILE_PATH
+			,FILE_PHYSICAL_NM
+			,FILE_LOGICAL_NM
+			,FILE_EXT
+			,FILE_SIZE
+		FROM
+			TB_FILE_ATTACH
+	</sql>
+	
+	<select id="selectFileKey" resultType="int">
+		/*selectFileKey*/
+		SELECT SEQ_NEXTVAL('ATTACH_SEQ')
+	</select>
+	
+	<select id="selectFileSeq" resultType="int" parameterType="Long">
+		/*selectFileSeq*/
+		SELECT IFNULL(MAX(FIAT.FILE_SEQ)+1,1) FROM TB_FILE_ATTACH FIAT WHERE ATTACH_SEQ = #{attachSeq}
+	</select>
+	
+	<select id="selectFileInfoListByAttachSeq" parameterType="Long" resultType="FileInfoVO">
+		/*selectFileInfoListByAttachSeq*/
+		<include refid="tbFileAttach" />
+		WHERE 1=1
+		AND ATTACH_SEQ = #{attachSeq}
+		AND USE_YN = 'Y'
+		AND DEL_YN = 'N'
+	</select>
+	
+	<select id="selectFileInfo" parameterType="FileInfoVO" resultType="FileInfoVO">
+		/*selectFileInfo*/
+		<include refid="tbFileAttach" />
+		WHERE 1=1
+		AND ATTACH_SEQ = #{attachSeq} 
+		AND FILE_SEQ = #{fileSeq}
+		AND USE_YN = 'Y'
+		AND DEL_YN = 'N'	
+	</select>
+	
+	<insert id="insertFileUploadErr" parameterType="FileUploadErrVO">
+		/*insertFileUploadErr*/
+		INSERT INTO TB_FILEUPLOAD_ERR
+		(
+			 FILE_ERR_NO
+			,ERR_TITLE
+			,ATTACH_SEQ
+			,ACTV_TASK_CD
+			,ACTV_ITEM_CD
+			,ACTV_EVENT_CD
+			,INS_USER_ID
+			,UPD_USER_ID
+		)
+		VALUES
+		(
+			 (SELECT CONCAT('FI',LPAD(SEQ_NEXTVAL('FILEUPLOAD_ERR_SEQ'),8,'0')))
+			,#{errTitle}
+			,#{attachSeq}
+			,#{actvTaskCd}
+			,#{actvItemCd}
+			,#{actvEventCd}
+			,#{insUserId}
+			,#{updUserId}
+		)
+	</insert>
+	
+	<sql id="fileUploadErr">
+		SELECT 
+			 FILE_ERR_NO
+			,ERR_TITLE
+			,ATTACH_SEQ
+			,ACTV_ITEM_CD
+			,INS_USER_ID
+			,DATE_FORMAT(INS_DT, '%Y-%m-%d %H:%i') INS_DT
+		FROM TB_FILEUPLOAD_ERR
+		WHERE 1=1	
+	</sql>
+	
+	<sql id="fileUploadErrCondition">
+		AND USE_YN = 'Y'
+		AND DEL_YN = 'N'
+		AND INS_USER_ID = #{insUserId}	
+		<if test="errTitle != null and errTitle != ''">
+		   AND ERR_TITLE LIKE UPPER(CONCAT('%', #{errTitle}, '%'))
+		</if>
+	</sql>
+	
+	<select id="selectFileUploadErrPage" parameterType="FileUploadErrVO" resultType="FileUploadErrVO">
+	/*selectFileUploadErrPage*/
+		<include refid="fileUploadErr" />
+		<include refid="fileUploadErrCondition"/>
+		ORDER BY FILE_ERR_NO DESC
+		LIMIT #{firstIndex},#{rowNum}
+	</select>
+	
+	<select id="selectFileUploadErrPageCount" parameterType="FileUploadErrVO" resultType="int">
+	/*selectFileUploadErrPageCount*/
+		SELECT COUNT(1) FROM(
+			<include refid="fileUploadErr" />
+			<include refid="fileUploadErrCondition"/>
+		) ER
+	</select>
+	
+	<update id="updateMoveFileInfo" parameterType="FileInfoVO">
+		/*updateMoveFileInfo*/
+		UPDATE TB_FILE_ATTACH
+		SET
+			 FILE_PATH = #{filePath}
+			,UPD_USER_ID = #{updUserId}
+			,UPD_DT = now()
+		WHERE 1=1
+			AND ATTACH_SEQ = #{attachSeq}
+			AND FILE_SEQ = #{fileSeq}
+	
+	</update>
+</mapper>

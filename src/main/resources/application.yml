@@ -1,0 +1,80 @@
+server:  
+  port: ${PORT:10000}
+
+spring: 
+#  profile:
+#    value: dev 
+  application:
+    name: sample-service
+#  main: 
+#    web-application-type: none
+  #logging
+  logging:
+    pattern:
+      console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}]){yellow} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+    level:
+      org.springframework: debug
+      com.springboot.microservices: debug
+#      org.hibernate: debug
+      jdbc.sqlonly: DEBUG 
+#      jdbc: DEBUG
+  # database
+  datasource:
+#    driverClassName: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://169.56.80.66 :3306/msadb?useUnicode=true&characterEncoding=utf-8
+    driverClassName: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    url: jdbc:log4jdbc:mysql://169.56.113.36:31815/msadb?useUnicode=true&characterEncoding=utf-8
+    username: msa
+    password: "passw0rd"
+    sql-script-encoding: utf-8
+    hikari:
+      connection-timeout: 5000
+      validation-timeout: 1000
+      maximum-pool-size: 30
+      minimum-idle: 2
+      connection-test-query: SELECT 1
+    servlet: 
+       multipart: 
+          enabled: true
+          file-size-threshold: 2KB
+          max-file-size: 200MB
+          max-request-size: 215MB
+  # rabbit-mq
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: admin
+#    password: passw0rd
+#  rabbitmq:
+#    host: 169.56.88.124
+#    port: 31993
+#    username: user
+#    password: user
+
+mybatis:
+    #type-handlers-package: com.springboot.microservices.sample
+    #config-location: classpath:mybatis/mapper/**/*.xml
+    mapper-locations: classpath:mybatis/mapper/**/*.xml
+    #check-config-location: true
+    configuration:
+        map-underscore-to-camel-case: true
+    type-aliases-package: com.springboot.microservices.mvp # base scan package for mytis type
+
+#log4jdbc: 
+#  spylogdelegator-name: net.sf.log4jdbc.log.slf4j.Slf4jSpyLogDelegator
+#  dump-sql-maxlinelength: 0
+
+
+
+prop: 
+  rabbit:
+    direct: 
+      exchange: "direct.exchange"
+    queue:
+      hello: "charge.hello.queue"
+    route:
+      hello: "charge.hello.route"
+  file:
+     root: "/data/file/upload"
+     temp: "/date/file/temp"
+      
